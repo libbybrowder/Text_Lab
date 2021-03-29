@@ -143,7 +143,7 @@ ggplot(data = daytonAFINN,
 
 ## LA Times
 
-la_times <- read_lines("la_times.txt")
+la_times <- read_lines("la_times7.txt")
 
 la_times <- tibble(la_times)
 
