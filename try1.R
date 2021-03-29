@@ -109,14 +109,81 @@ ggplot(data = chicagoAFINN,
   ggtitle("Chicago Affin Sentiment Range")+
   theme_minimal()
 
-### tf-idf
+#Dayton, Ohio
+dayton<- read_lines("dayton 50.txt")
+dayton<- tibble(dayton) 
+dayton$dayton<- as.character(dayton$dayton) #into large character
+
+dayton <- dayton %>%
+  unnest_tokens(word, dayton)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+
+# Dayton sentiment analysis: 
+
+daytonAFINN<- dayton %>%
+  inner_join(get_sentiments("afinn"))
+
+daytonNRC<- dayton %>%
+  inner_join(get_sentiments("nrc"))
+
+daytonBING<- dayton %>%
+  inner_join(get_sentiments("bing"))
+
+table(daytonBING$sentiment)
+table(daytonNRC$sentiment)
+
+
+ggplot(data = daytonAFINN, 
+       aes(x=value)
+)+
+  geom_histogram()+
+  ggtitle("Dayton Affin Sentiment Range")+
+  theme_minimal()
+
+
+
+
+
+
+
+
+### tf-idf-- look at frequency comapred with the whole corpus
+#treat each newspaper as a document in a corpus
 PHLraw<- as_tibble(read_lines("Files (25).txt"))
 NYTraw<- as_tibble(read_lines("NYT 40.txt"))                   
-Chicagoraw<- as_tibble("chicago 40.txt")
+Chicagoraw<- as_tibble(read_lines("chicago 40.txt"))
+Daytonraw<- as_tibble(read_lines("dayton 50.txt"))
 
 data_prep <- function(x,y,z){
   i <- as_tibble(t(x))
   ii <- unite(i,"text",y:z,remove = TRUE,sep = "")
 }
 
+PHLprep<- data_prep(PHLraw,'V1','V1738')
+NYTprep<- data_prep(NYTraw, 'V1', 'V3085')
+Chicagoprep<- data_prep(Chicagoraw, 'V1','V1775')
+Daytonprep<- data_prep(Daytonraw, 'V1', 'V2913')
+cities <- c("Philadelphia","NYC","Chicago", "Dayton")
 
+
+tf_idf_text <- tibble(cities,text=t(tibble(PHLprep,NYTprep,Chicagoprep,Daytonprep,.name_repair = "universal")))
+
+class(tf_idf_text)
+
+word_count <- tf_idf_text %>%
+  unnest_tokens(word, text) %>%
+  count(cities, word, sort = TRUE)
+
+total_words <- word_count %>% 
+  group_by(cities) %>% 
+  summarize(total = sum(n))
+
+news_words <- left_join(word_count, total_words)
+
+View(news_words)
+
+news_words2 <- news_words %>%
+  bind_tf_idf(word, cities, n)
+
+View(news_words2)
