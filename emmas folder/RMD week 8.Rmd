@@ -1,0 +1,274 @@
+---
+title: "Week 8 TinyText Lab-EWS"
+author: "Emma Seiberlich"
+date: "3/30/2021"
+output: html_document
+---
+# Background
+Congratulations you've successfully transferred from being a NBA 'quant' scout to a consultant specializing in US national sentiment! You've been hired by a non-profit in secret to track the level of support nationally and regionally for the field of Data Science. The goal is to get a general idea of patterns associated with articles being written on the broad topic of Data Science (you can also choose to select a sub-topic). In doing so your data science team has decided to explore periodicals from around the country in a effort to track the relative positive or negative sentiment and word frequencies. Luckily your team has access to a world class library search engine call LexusNexus (NexusUni) that provides access to newspapers from around the country dating back decades. You'll first need to decided what words you want to track and what time might be interesting to begin your search. 
+
+You'll need to select several newspapers from different regions in the country limiting the search to 100 articles from each paper, run sentiment analysis with each newspaper serving as a corpus and then compare the level of positive or negative connotation associated with the outcomes. Also, run tf-idf on each corpus (newspapers) and work to compare the differences between the distributions (5 to 6 newspapers should be fine)
+
+Your main goal (and the goal of all practicing data scientists!) is to translate this information into action. What patterns do you see, why do you believe this to be the case? What additional information might you want? Be as specific as possible, but keep in mind this is an initial exploratory effort...more analysis might be needed...but the result can and should advise the next steps you present to the firm. 
+
+
+Please submit a cleanly knitted HTML file describing in detail the steps you took along the way, the results of your analysis and most importantly the implications/next steps you would recommend.  You will report your final results and recommendations next week in class. This will be 5 minutes per group. 
+
+You will need also need to try to collaborate within your group via a GitHub repo, if you choose it would be fine to assign 1 or 2 regions/newspapers per group member, that can then be added to the repo. Create a main repo, everyone should work in this repo and submit independently using branching/pull requests. If you want to try to use pull request to combine everyone's work into a final project, please do so, but it's not a requirement. Select a repo owner that sets up access (push access) for the week, we will rotate owners next week. Also, submit a link to your the GitHub repo (every group member can submit the same link). 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidytext)
+library(ggwordcloud)
+library(ggwordcloud)
+library(gutenbergr)
+library(textdata)
+```
+For our analysis, I have chosen to extract articles from NexusUni that include 'data science' from 5 US cities-- Philadelphia, New York City, Chicago, Dayton, and Los Angeles.
+
+
+## The Philadelphia Inquirer-- 'data science'
+For this section, 25 articles were included.
+```{r}
+PHLInquirer<- read_lines("Files (25).txt")
+PHLInquirer<- tibble(PHLInquirer) 
+PHLInquirer$PHLInquirer<- as.character(PHLInquirer$PHLInquirer) #into large character
+PHLInquirer <- PHLInquirer %>%
+  unnest_tokens(word, PHLInquirer)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+```
+
+## Sentiment Analysis- Philadelphia
+```{r}
+
+PHLInqAFFIN<- PHLInquirer %>%
+  inner_join(get_sentiments("afinn"))
+
+PHLInqNRC<- PHLInquirer %>%
+  inner_join(get_sentiments("nrc"))
+
+PHLInqBING<- PHLInquirer %>%
+  inner_join(get_sentiments("bing"))
+
+table(PHLInqBING$sentiment)
+table(PHLInqNRC$sentiment)
+
+
+ggplot(data = PHLInqAFFIN, 
+       aes(x=value)
+)+
+  geom_histogram()+
+  ggtitle("PHL Affin Sentiment Range")+
+  theme_minimal()
+
+
+```
+
+## New York Times- "data science"
+```{r}
+NYT<- read_lines("NYT 40.txt")
+NYT<- tibble(NYT) 
+NYT$NYT<- as.character(NYT$NYT) #into large character
+
+NYT <- NYT %>%
+  unnest_tokens(word, NYT)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+```
+
+## Sentiment Analysis- New York
+```{r}
+NYTaffin<- NYT %>%
+  inner_join(get_sentiments("afinn"))
+
+NYTnrc<- NYT %>%
+  inner_join(get_sentiments("nrc"))
+
+NYTbing<- NYT %>%
+  inner_join(get_sentiments("bing"))
+
+table(NYTbing$sentiment)
+table(NYTnrc$sentiment)
+
+
+ggplot(data = NYTaffin, 
+       aes(x=value)
+)+
+  geom_histogram()+
+  ggtitle("NYT Affin Sentiment Range")+
+  theme_minimal()
+```
+
+## Chicago Daily Herald-- "data science"
+```{r}
+chicago<- read_lines("chicago 40.txt")
+chicago<- tibble(chicago) 
+chicago$chicago<- as.character(chicago$chicago) #into large character
+
+chicago <- chicago %>%
+  unnest_tokens(word, chicago)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+```
+
+## Chicago Sentiment Analysis
+```{r}
+chicagoAFINN<- chicago %>%
+  inner_join(get_sentiments("afinn"))
+
+chicagoNRC<- chicago %>%
+  inner_join(get_sentiments("nrc"))
+
+chicagoBING<- chicago %>%
+  inner_join(get_sentiments("bing"))
+
+table(chicagoBING$sentiment)
+table(chicagoNRC$sentiment)
+
+
+ggplot(data = chicagoAFINN, 
+       aes(x=value)
+)+
+  geom_histogram()+
+  ggtitle("Chicago Affin Sentiment Range")+
+  theme_minimal()
+```
+
+## Dayton Daily News-- "data science"
+```{r}
+dayton<- read_lines("dayton 50.txt")
+dayton<- tibble(dayton) 
+dayton$dayton<- as.character(dayton$dayton) #into large character
+
+dayton <- dayton %>%
+  unnest_tokens(word, dayton)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+```
+
+## Dayton Sentiment Analysis
+```{r}
+daytonAFINN<- dayton %>%
+  inner_join(get_sentiments("afinn"))
+
+daytonNRC<- dayton %>%
+  inner_join(get_sentiments("nrc"))
+
+daytonBING<- dayton %>%
+  inner_join(get_sentiments("bing"))
+
+table(daytonBING$sentiment)
+table(daytonNRC$sentiment)
+
+
+ggplot(data = daytonAFINN, 
+       aes(x=value)
+)+
+  geom_histogram()+
+  ggtitle("Dayton Affin Sentiment Range")+
+  theme_minimal()
+```
+
+## Los Angeles Times-- "data science"
+```{r}
+la_times <- read_lines("la_times7.txt")
+
+la_times <- tibble(la_times)
+
+
+la_times <- la_times %>%
+  unnest_tokens(word, la_times)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
+```
+
+## Los Angeles Sentiment Analysis
+```{r}
+la_sentiment_affin <- la_times %>%
+  inner_join(get_sentiments("afinn"))#using a inner join to match words and add the sentiment variable
+
+la_sentiment_nrc <- la_times %>%
+  inner_join(get_sentiments("nrc"))
+
+la_sentiment_bing <- la_times %>%
+  inner_join(get_sentiments("bing"))
+
+table(la_sentiment_bing$sentiment)
+
+table(la_sentiment_nrc$sentiment)
+
+ggplot(data = la_sentiment_affin, 
+       aes(x=value)
+        )+
+  geom_histogram()+
+  ggtitle("LA Times Sentiment Range")+
+  theme_minimal()
+# using ggwordcloud package
+set.seed(42)
+ggplot(la_times[1:50,], aes(label = word, size = n)
+       ) +
+  geom_text_wordcloud() +
+  theme_minimal()
+```
+
+#TF-IDF
+look at frequency compared with the whole corpus
+For our purposes, we'll treat each newspaper compilation as a separate document within the corpus. 
+```{r}
+PHLraw<- as_tibble(read_lines("Files (25).txt"))
+NYTraw<- as_tibble(read_lines("NYT 40.txt"))                   
+Chicagoraw<- as_tibble(read_lines("chicago 40.txt"))
+Daytonraw<- as_tibble(read_lines("dayton 50.txt"))
+la_times_raw <- as_tibble(read_lines("la_times7.txt"))
+```
+
+
+```{r}
+data_prep <- function(x,y,z){
+  i <- as_tibble(t(x))
+  ii <- unite(i,"text",y:z,remove = TRUE,sep = "")
+}
+
+PHLprep<- data_prep(PHLraw,'V1','V1738')
+NYTprep<- data_prep(NYTraw, 'V1', 'V3085')
+Chicagoprep<- data_prep(Chicagoraw, 'V1','V1775')
+Daytonprep<- data_prep(Daytonraw, 'V1', 'V2913')
+LAprep <- data_prep(la_times_raw, 'V1', 'V707')
+cities <- c("Philadelphia","NYC","Chicago", "Dayton", "Los Angeles")
+
+
+tf_idf_text <- tibble(cities,text=t(tibble(PHLprep,
+                                           NYTprep,
+                                           Chicagoprep,
+                                           Daytonprep,
+                                           LAprep,.name_repair = "universal")))
+
+class(tf_idf_text)
+
+word_count <- tf_idf_text %>%
+  unnest_tokens(word, text) %>%
+  count(cities, word, sort = TRUE)
+
+total_words <- word_count %>% 
+  group_by(cities) %>% 
+  summarize(total = sum(n))
+
+news_words <- left_join(word_count, total_words)
+
+head(news_words,10)
+#View(news_words)
+
+news_words2 <- news_words %>%
+  bind_tf_idf(word, cities, n)
+
+head(news_words2,10)
+#View(news_words2)
+```
+## Conclusions
+From conducting sentiment analysis on these five US cities using Afinn, Bing, and NRC for this lab, we can see the general sentiment of certain publications across the United States and if they lean positive or negative in their sentiments. Most of the publications leaned positive according to NRC, but leaned negative according to Bing. When looking at the Afinn sentiment range, most publications that we analyzed had a pretty even spread of negative and positive sentiments, but were pretty normally distributed which leads us to believe the general sentiment is pretty neutral without strong negative or positive sentiments. According to Bing, Afinn, and NRC, the Chicago Daily Herald is the most positive. The sentiment that was the most common for each of the publications was “trust”, which makes sense because news paper editors probably ensure that their writing is trustworthy and attempt to provide unbiased news. The least common sentiment was “disgust”, which might make sense because data science is often exclusively quantitative, and thus would not invoke a strong emotional response such as disgust. 
+
+```{r}
+
+```
+

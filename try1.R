@@ -187,3 +187,4 @@ news_words2 <- news_words %>%
   bind_tf_idf(word, cities, n)
 
 View(news_words2)
+
