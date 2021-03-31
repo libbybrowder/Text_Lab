@@ -141,11 +141,45 @@ ggplot(data = daytonAFINN,
   ggtitle("Dayton Affin Sentiment Range")+
   theme_minimal()
 
+## LA Times
+
+la_times <- read_lines("la_times7.txt")
+
+la_times <- tibble(la_times)
 
 
+la_times <- la_times %>%
+  unnest_tokens(word, la_times)%>%
+  anti_join(stop_words)%>% 
+  count(word, sort=TRUE)
 
+# LA Sentiment Analysis:
 
+la_sentiment_affin <- la_times %>%
+  inner_join(get_sentiments("afinn"))#using a inner join to match words and add the sentiment variable
 
+la_sentiment_nrc <- la_times %>%
+  inner_join(get_sentiments("nrc"))
+
+la_sentiment_bing <- la_times %>%
+  inner_join(get_sentiments("bing"))
+
+table(la_sentiment_bing$sentiment)
+
+table(la_sentiment_nrc$sentiment)
+
+ggplot(data = la_sentiment_affin, 
+       aes(x=value)
+        )+
+  geom_histogram()+
+  ggtitle("LA Times Sentiment Range")+
+  theme_minimal()
+# using ggwordcloud package
+set.seed(42)
+ggplot(la_times[1:50,], aes(label = word, size = n)
+       ) +
+  geom_text_wordcloud() +
+  theme_minimal()
 
 
 ### tf-idf-- look at frequency comapred with the whole corpus
@@ -154,6 +188,8 @@ PHLraw<- as_tibble(read_lines("Files (25).txt"))
 NYTraw<- as_tibble(read_lines("NYT 40.txt"))                   
 Chicagoraw<- as_tibble(read_lines("chicago 40.txt"))
 Daytonraw<- as_tibble(read_lines("dayton 50.txt"))
+la_times_raw <- as_tibble(read_lines("la_times.txt"))
+
 
 data_prep <- function(x,y,z){
   i <- as_tibble(t(x))
@@ -164,10 +200,11 @@ PHLprep<- data_prep(PHLraw,'V1','V1738')
 NYTprep<- data_prep(NYTraw, 'V1', 'V3085')
 Chicagoprep<- data_prep(Chicagoraw, 'V1','V1775')
 Daytonprep<- data_prep(Daytonraw, 'V1', 'V2913')
-cities <- c("Philadelphia","NYC","Chicago", "Dayton")
+LAprep <- data_prep(la_times_raw, 'V1', 'V307')
+cities <- c("Philadelphia","NYC","Chicago", "Dayton", "Los Angeles")
 
 
-tf_idf_text <- tibble(cities,text=t(tibble(PHLprep,NYTprep,Chicagoprep,Daytonprep,.name_repair = "universal")))
+tf_idf_text <- tibble(cities,text=t(tibble(PHLprep,NYTprep,Chicagoprep,Daytonprep, LAprep,.name_repair = "universal")))
 
 class(tf_idf_text)
 
